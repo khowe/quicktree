@@ -86,7 +86,7 @@ void export_distances_buildtree( struct Tree *thetree,
 void find_path_buildtree( unsigned int home,
 			  struct Tnode *node,
 			  struct DistanceMatrix *mat,
-			  float dist,
+			  Distance dist,
 			  unsigned int *considered) {
 
   if (node->left == NULL && node->right == NULL) {
@@ -205,7 +205,7 @@ struct Tree *neighbour_joining_buildtree( struct ClusterGroup *group,
   struct Tnode *newnode;
   double fnumseqs;                  /*** divisor for sums            ***/
   double dmj, dmi, ri, minsofar, dist, dij, dist_i, dist_j, dist_k;
-  float *r;                        /*** stores the r values         ***/
+  Distance *r;                        /*** stores the r values         ***/
 
 
   /* METHOD ***********************************
@@ -254,7 +254,7 @@ struct Tree *neighbour_joining_buildtree( struct ClusterGroup *group,
 
   if (numseqs > 2) {
 
-    r = (float *) malloc_util( numseqs * sizeof( float ) );
+    r = (Distance *) malloc_util( numseqs * sizeof( Distance ) );
     /* Calculate r[i] for all i */
     for( i=0; i < numseqs; i++ ) {
       ri = 0.0;
@@ -539,7 +539,7 @@ struct Tree *UPGMA_buildtree(struct ClusterGroup *group,
   unsigned int mini = 0, minj = 0;  /*** neighbouring nodes          ***/
   unsigned int nextfreenode;        /*** incremental labels to nodes ***/ 
   unsigned int *subtreesizes;
-  float *heights;
+  Distance *heights;
   double minsofar, newnodeheight, dmi, dmj;
   
   struct DistanceMatrix *mat = NULL;
@@ -574,7 +574,7 @@ struct Tree *UPGMA_buildtree(struct ClusterGroup *group,
   /******* intialisation ********************/
 
   nodes = (struct Tnode **) malloc_util( group->numclusters * sizeof(struct Tnode *));
-  heights = (float *) malloc_util( group->numclusters * sizeof(float));
+  heights = (Distance *) malloc_util( group->numclusters * sizeof(Distance));
   subtreesizes = (unsigned int *) malloc_util( group->numclusters * sizeof(unsigned int));
   for( i=0; i < group->numclusters; i++) { 
     nodes[i] = new_leaf_Tnode( i, group->clusters[i] );
@@ -596,7 +596,7 @@ struct Tree *UPGMA_buildtree(struct ClusterGroup *group,
     newnode = nodes[0];
   else {
     /*** new code ***/
-    float *min_of_row = (float *) malloc_util( numseqs * sizeof( float ));
+    Distance *min_of_row = (Distance *) malloc_util( numseqs * sizeof( Distance ));
     int *min_of_row_idx = (int *) malloc_util( numseqs * sizeof( int ));
 
     /* calculate in advance the minimum column for each row */
@@ -709,7 +709,7 @@ struct Tree *UPGMA_buildtree(struct ClusterGroup *group,
 	    min_of_row_idx[m] = -1;
 	    for(j=0; j < m; j++) {
 	      if (nodes[j] == NULL  || j == minj) continue;
-	      if (mat->data[m][j] < min_of_row[j]) {
+	      if (mat->data[m][j] < min_of_row[m]) {
 		min_of_row[m] = mat->data[m][j];
 		min_of_row_idx[m] = j;
 	      }

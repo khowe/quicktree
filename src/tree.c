@@ -249,7 +249,7 @@ struct Tree *get_root_Tnode( struct Tree *source ) {
   struct Tnode *focal, *root, *children[3];
   struct Tree *ret;
   unsigned int rootleft, focalleft, focalright;
-  float maxdist;
+  Distance maxdist;
 
   /***** Method **************
      0. Clone the given tree
@@ -387,7 +387,7 @@ unsigned int read_newhampshire_Tnode( FILE *handle,
   char c;
   unsigned int index;
   struct Sequence *newseq;
-  float distance;
+  double distance;
   
 
   fscanf( handle, "%1s", &c);
@@ -420,7 +420,7 @@ unsigned int read_newhampshire_Tnode( FILE *handle,
     fscanf( handle, "%1s", &c);  /* should be : */
     if ( c != ':')
       fatal_util( "Parse error: ':' expected");
-    if (!fscanf( handle, "%f", &distance ))
+    if (!fscanf( handle, "%lf", &distance ))
       fatal_util( "Parse error: floating point number expexted");
 
   }
@@ -433,7 +433,7 @@ unsigned int read_newhampshire_Tnode( FILE *handle,
     for( index=0; (newseq->name[index] = fgetc( handle )) != ':'; index++);
     newseq->name[index] = '\0';
 
-    if (!fscanf( handle, "%f", &distance ))
+    if (!fscanf( handle, "%lf", &distance ))
       fatal_util( "Parse error: floating point number expexted");
     
     *nodeptrptr = new_leaf_Tnode( nodecounter++, single_Sequence_Cluster( newseq ) );
@@ -523,7 +523,7 @@ struct Tree *read_newhampshire_Tree( FILE *handle ) {
 void scale_bootstraps_Tnode( struct Tnode *node, unsigned int iters) {
 
   if (node != NULL) {
-    node->bootstrap = (int) (((float) node->bootstrap / (float) iters) * 100.0);
+    node->bootstrap = (int) (((double) node->bootstrap / (double) iters) * 100.0);
     scale_bootstraps_Tnode( node->left, iters);
     scale_bootstraps_Tnode( node->right, iters);
   }

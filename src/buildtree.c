@@ -331,13 +331,11 @@ struct Tree *neighbour_joining_buildtree( struct ClusterGroup *group,
 	newnode->child_ids = (unsigned int *) 
 	  malloc_util( group->numclusters * sizeof( unsigned int ) );
 	for (m=0; m < group->numclusters; m++) {
-	  if ( (newnode->left->child_ids != NULL && 
-		    (newnode->left->child_ids[m] || newnode->left->child_ids[m])) ||
-	       (newnode->right->child_ids != NULL &&
- 		    (newnode->right->child_ids[m] || newnode->right->child_ids[m])) ||
-	       ((newnode->left->nodenumber == m || 
-		 newnode->right->nodenumber == m ||
-		 newnode->nodenumber == m))) {
+	  if ( (newnode->left->child_ids != NULL && newnode->left->child_ids[m]) ||
+	       (newnode->right->child_ids != NULL && newnode->right->child_ids[m]) ||
+	       (newnode->left->nodenumber == m || 
+		newnode->right->nodenumber == m ||
+		newnode->nodenumber == m)) {
 	    newnode->child_ids[m] = 1;
 	  }
 	  else {
@@ -636,7 +634,6 @@ struct Tree *UPGMA_buildtree(struct ClusterGroup *group,
 	  mini = i;
 	  minj = min_of_row_idx[i];
 	}
-
       }
 
       /* we have the neighbouring i, j; lets calc distances and make the new node */
@@ -657,11 +654,12 @@ struct Tree *UPGMA_buildtree(struct ClusterGroup *group,
 	  malloc_util( group->numclusters * sizeof( unsigned int ) );
 	for (i=0; i < group->numclusters; i++) {
 	  if ( (newnode->left->child_ids != NULL && 
-		(newnode->left->child_ids[i] || newnode->left->child_ids[i])) ||
-	       (newnode->right->child_ids != NULL && 
+		(newnode->left->child_ids[i] || newnode->left->child_ids[i])) ||	       
+	       (newnode->right->child_ids != NULL &&
+		(newnode->right->child_ids[i] || newnode->right->child_ids[i])) ||
 		(newnode->left->nodenumber == i || 
 		 newnode->right->nodenumber == i ||
-		 newnode->nodenumber == i))) {
+		 newnode->nodenumber == i)) {
 	    newnode->child_ids[i] = 1; 
 	  }
 	  else {

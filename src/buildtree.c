@@ -596,29 +596,48 @@ struct Tree *UPGMA_buildtree(struct ClusterGroup *group,
   if (numseqs == 1)
     newnode = nodes[0];
   else {
+    /*** new code ***/
+    double *min_of_row = (double *) malloc_util( numseqs * sizeof( double ));
+    int *min_of_row_idx = (int *) malloc_util( numseqs * sizeof( int ));
+
+    /* calculate in advance the minimum column for each row */
+    for(i=1; i < numseqs; i++) {
+      min_of_row[i] = DBL_MAX;
+      min_of_row_idx[i] = -1;
+
+      for(j=0; j < i; j++) {
+
+	if (mat->data[i][j] < min_of_row[i]) {
+	  min_of_row[i] = mat->data[i][j];
+	  min_of_row_idx[i] = j;
+	}
+      }
+    }
+
+
     for (nodecount=0; nodecount < numseqs-1; nodecount++) {
+
+      for(i=1; i < numseqs; i++) {
+	if (nodes[i] == NULL) continue;
+	for(j=0; j < i; j++) {
+	  if (nodes[j] == NULL) continue;
+	}
+      }
 
       /* do the intialisation necessary for each iteration here */
       
       minsofar = DBL_MAX;  /* from float.h */
       
-      /******* for each pair of matrix entries *********************/
-      
-      for( i=0; i < numseqs; i++ ) {
+      for( i=1; i < numseqs; i++) {
 	if (nodes[i] == NULL) continue;
-	for( j=0; j < i; j++ ) {
-	  if (nodes[j] == NULL) continue;
-	  
-	  if (mat->data[i][j] < minsofar) {
-	    minsofar = mat->data[i][j];
-	    mini = i;
-	    minj = j;
-	  }
+	if ( min_of_row[i] < minsofar ) {
+	  minsofar = min_of_row[i];
+	  mini = i;
+	  minj = min_of_row_idx[i];
 	}
+
       }
-      
-      /* printf("i = %d, j = %d, ri = %f, rj = %f\n", mini, minj, ri, rj); */
-      
+
       /* we have the neighbouring i, j; lets calc distances and make the new node */
       
       newnodeheight = mat->data[mini][minj] * 0.5;
@@ -644,21 +663,24 @@ struct Tree *UPGMA_buildtree(struct ClusterGroup *group,
 		 newnode->nodenumber == i))) {
 	    newnode->child_ids[i] = 1; 
 	  }
-	else {
-	  newnode->child_ids[i] = 0;
-	}
+	  else {
+	    newnode->child_ids[i] = 0;
+	  }
 	}
       }
-      
+
       /* now update the distance matrix; This needs hackery to make sure that the
 	 indexing is correct */
       
+      min_of_row[mini] = DBL_MAX;
+      min_of_row_idx[mini] = -1;
+
       for( m=0; m < numseqs; m++ ) {
 	if (nodes[m] == NULL) continue;
 	
 	/*                  dmini,m*|Ci| + dminj,m*|Cj|
-			    dmini,m =     ---------------------------   
-			    |Ci| + |Cj|
+	     dmini,m =      ---------------------------   
+			            |Ci| + |Cj|
 	*/
 	
 	if (m > minj) dmj = mat->data[m][minj];
@@ -672,13 +694,38 @@ struct Tree *UPGMA_buildtree(struct ClusterGroup *group,
 	  row = mini;
 	  column = m;
 	}
+
 	dmi = mat->data[row][column];
 	
 	mat->data[row][column] = 
 	  (( dmi * subtreesizes[mini])+( dmj * subtreesizes[minj])) / 
-	  (subtreesizes[mini] + subtreesizes[minj]);    
+	  (subtreesizes[mini] + subtreesizes[minj]);
+
+	if (mat->data[row][column] < min_of_row[row] 
+	    && nodes[column] != NULL
+	    && column != minj
+	    && row != column) {
+	  min_of_row[row] = mat->data[row][column];
+	  min_of_row_idx[row] = column; 
+	}
+
+	/* node minj is being nullified, so any row that points to it
+	   is min should be updated */
+	if (m != mini && m != 0) {
+	  if (min_of_row_idx[m] == minj || min_of_row_idx[m] == mini) {
+	    min_of_row[m] = DBL_MAX;
+	    min_of_row_idx[m] = -1;
+	    for(j=0; j < m; j++) {
+	      if (nodes[j] == NULL  || j == minj) continue;
+	      if (mat->data[m][j] < min_of_row[j]) {
+		min_of_row[m] = mat->data[m][j];
+		min_of_row_idx[m] = j;
+	      }
+	    }
+	  }
+	}
       }
-      
+
       heights[mini] = newnodeheight;
       subtreesizes[mini] = subtreesizes[mini] + subtreesizes[minj] + 1; 
       
@@ -686,6 +733,10 @@ struct Tree *UPGMA_buildtree(struct ClusterGroup *group,
       nodes[minj] = NULL;
       
     }
+
+    free_util( min_of_row );
+    free_util( min_of_row_idx );
+
   }
   /******* end of main loop ******************/
   

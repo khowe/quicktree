@@ -1,0 +1,15 @@
+QuickTree 1.0
+=============
+
+QuickTree generates phylogentic trees using the Neighbor-Joining
+algorithm. The tress are written to stdout, in the Newick/Hew
+Hampshire format. 
+
+QuickTree accepts both distance matrix and multiple-sequence-aligment
+inputs. The former should be in PHYLIP format. The latter should be in
+Stockholm format, which is the native alignment format for the Pfam
+database. Alignments in various formats can be converted to Stockholm
+format by the sreformat program, which is part of the HMMer package by
+Sean Eddy (hmmer.wustl.edu).
+
+Kevin Howe, 2002

@@ -17,8 +17,10 @@
 
 /******************* structure definitions ****************************/
 
+typedef float Distance;
+
 struct DistanceMatrix {
-  float **data;
+  Distance **data;
   int size;
 };
 
@@ -116,7 +118,7 @@ void *free_DistanceMatrix( struct DistanceMatrix *);
    It therefore abstracts the internals of the distance matrix, at the
    cost of a function call for each lookup (is this wise...?)
  **********************************************************************/
-float index_DistanceMatrix( struct DistanceMatrix *, unsigned int, unsigned int );
+Distance index_DistanceMatrix( struct DistanceMatrix *, unsigned int, unsigned int );
 
 /*********************************************************************
  FUNCTION: print_DistanceMatrix

@@ -1,4 +1,4 @@
-/*  Last edited: Jun 21 13:08 2001 (klh) */
+/*  Last edited: Feb  8 17:42 2002 (klh) */
 /**********************************************************************
  ** FILE: tree.c
  ** NOTES:
@@ -896,14 +896,21 @@ void write_newhampshire_Tree( FILE *handle, struct Tree *thetree,
 			      unsigned int show_bootstraps) {
   if (thetree != NULL) {
     fprintf( handle, "(\n");
-    /* The first node will always be defined...(he says) */
-    write_newhampshire_Tnode( handle, thetree->child[0], show_bootstraps );
-    if (thetree->child[1] != NULL) {
-      fprintf( handle, ",\n");
-      write_newhampshire_Tnode( handle, thetree->child[1], show_bootstraps );
-      if (thetree->child[2] != NULL) {
+    if (thetree->child[0] != NULL) {
+      if (thetree->child[1] == NULL) {
+	/* draw rooted tree */
+	write_newhampshire_Tnode( handle, thetree->child[0]->left, show_bootstraps );
 	fprintf( handle, ",\n");
-	write_newhampshire_Tnode( handle, thetree->child[2], show_bootstraps );
+	write_newhampshire_Tnode( handle, thetree->child[0]->right, show_bootstraps );
+      }
+      else {
+	write_newhampshire_Tnode( handle, thetree->child[0], show_bootstraps );
+	fprintf( handle, ",\n");
+	write_newhampshire_Tnode( handle, thetree->child[1], show_bootstraps );
+	if (thetree->child[2] != NULL) {
+	  fprintf( handle, ",\n");
+	  write_newhampshire_Tnode( handle, thetree->child[2], show_bootstraps );
+	}
       }
     }
     fprintf( handle, ");\n");

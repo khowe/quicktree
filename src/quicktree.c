@@ -23,9 +23,9 @@
 
 static char usage[] = "\
 Usage: quicktree [-options] <inputfile>\n\
-Options:\
+Options:\n\
 -in <m|a>        : input file is a distance matrix in phylip format (m)\n\
-                   or an alignment in stockholm format (a, default)\n\
+                   or an alignment in stockholm format* (a, default)\n\
 -out <m|t>       : output is a distance matrix in phylip format (m) or\n\
                    a tree in New Hampshire format\n\n\
 Advanced options :\n\
@@ -34,8 +34,8 @@ Advanced options :\n\
 -kimura          : Use the kimura translation for pairwise distances\n\
                      (ignored for distance matrix inputs)\n\
 -boot <n>        : Calcuate bootstrap values with n iterations\n\
-                     (ignored for distance matrix outputs)\n\
-";
+                     (ignored for distance matrix outputs)\n\n\
+*Use sreformat, part of the HMMer package to convert your alignment to Stockholm format";
 
 static struct Option options[] = {
     { "-in", CHAR_ARG },

@@ -11,7 +11,7 @@
 
 static char *comment = "#";
 static char *whitespace = " \t\r\n";
-
+static char *terminator = "//";
 
 /**********************************************************************
  FUNCTION: free_Alignment
@@ -194,229 +194,139 @@ void write_MUL_Alignment( FILE *handle, struct Alignment *al ) {
 
 struct Alignment *read_Stockholm_Alignment( FILE *handle ) {
   struct Alignment *aln;
-  struct Aln_block {
-    int col_st;
-    int col_en;
-  } *blocks = NULL;
 
   char line[MAX_LINE_LEN];
   char tokenstring[MAX_LINE_LEN];
   char *name_ptr = NULL;
   char *seq_ptr = NULL;
-  char **aln_names = NULL;
+  char *tmp = NULL;
 
   unsigned int i, j, k;
-  unsigned int aln_pos = 0;
   unsigned int numseqs = 0;
-  unsigned int numblocks  = 0;
+  unsigned int numblocks = 0;
   unsigned int thisseq = 0;
-  unsigned int aln_len = 0;
-
+  unsigned int last_idx = 0;
+  unsigned int got_line = 0;
+  unsigned int saw_blank_line = 0;
 
   aln = (struct Alignment *) malloc_util( sizeof( struct Alignment ));
   aln->numseqs = 0;
   aln->seqs = NULL;
   aln->length = 0;
 
+  numblocks = 0;
+  thisseq = 0;
 
-  /* This is a two-pass parse. First parse to get the block structure,
-     second parse to actually read in the alignment */
-
-  /*******************/
-  /** First pass ... */
-  /*******************/
-
-  /* skip to first non-comment, non-blank line */
-
+  /* skip to the start of the first block */
+  got_line = 0;
   do {
-    if (fgets(line, MAX_LINE_LEN, handle) == NULL) {
-      fatal_util("Cannot read alignment; file is empty");
-    }
-    strcpy(tokenstring, line);
-  }
-  while ((name_ptr = strtok(tokenstring, whitespace)) == NULL || 
-	 (strchr(comment, *name_ptr) != NULL));
-
-  numblocks   = 0;
-  while (!feof(handle)) {
-    if (numblocks == 0) {
-      blocks = (struct Aln_block *) malloc_util (sizeof(struct Aln_block));
-    }
-    else { 
-      blocks = (struct Aln_block *) realloc_util (blocks, (numblocks+1) * sizeof(struct Aln_block));
-    }
-    blocks[numblocks].col_st = MAX_LINE_LEN + 1;
-    blocks[numblocks].col_en = -1;
-    
-    thisseq = 0;
-    while (name_ptr != NULL) {
-      if (numblocks == 0) {
-	if (thisseq == 0) {
-	  aln_names = (char **) malloc_util (sizeof(char *));
-	}
-	else { 
-	  aln_names = (char **) realloc_util (aln_names, (thisseq + 1) * sizeof(char *));
-	}
-	
-	aln_names[thisseq] = (char *) malloc_util( (strlen( name_ptr ) + 1) * sizeof(char));
-	strcpy( aln_names[thisseq], name_ptr );
+    if (fgets(line, MAX_LINE_LEN, handle) == NULL)
+      break;
+    else {      
+      if (strchr( comment, *line ) != NULL)
+	continue;
+      else if (strncmp(line, terminator, 2) == 0) {
+	break;
       }
       else {
-	if (strcmp(aln_names[thisseq], name_ptr) != 0) {
-	  warning_util("Your seq names are inconsistent across blocks. Using the names in the first block");
-	}
-	  
-      }
-      thisseq++;
-      
-      if ((seq_ptr = strtok(NULL, whitespace)) != NULL) {
-	if (seq_ptr - tokenstring < blocks[numblocks].col_st) {
-	  blocks[numblocks].col_st = seq_ptr - tokenstring;
-	}
-	/* The following accounts for the fact that there may be whitepasce at the end of the line */
-	for (seq_ptr = line + strlen(line) - 1;  strchr(whitespace, *seq_ptr) != NULL; seq_ptr --);
-	
-	if (seq_ptr - line > blocks[numblocks].col_en) {
-	  blocks[numblocks].col_en = seq_ptr - line;
-	}
-      }
-      
-      
-      /* If the next line is blank, then we have reached the end of the block.
-	 This assumes that blocksa are separated by one onr more blank line.
-	 I hope this is correct */
-      
-      do {
-	if (fgets(line, MAX_LINE_LEN, handle) == NULL) { 
-	  name_ptr = NULL; 
-	  break; 
-	}
 	strcpy(tokenstring, line);
-	
-	if ((name_ptr = strtok(tokenstring, whitespace)) == NULL) {
-	  break;
-	}
-      } while (strchr(comment, *name_ptr) != NULL);
-      
+	if ( (name_ptr = strtok(tokenstring, whitespace)) != NULL && 
+	     (seq_ptr = strtok( NULL, whitespace )) != NULL)
+	  got_line = 1;	
+      }
     }
-    
+  } while (! got_line);
+
+  if (! got_line)
+    fatal_util( "The alignment file appears to have no valid lines in Stockholm format\n");
+
+  while (got_line) {
+
     if (numblocks == 0) {
-      numseqs = thisseq;
-    }
-    else if (thisseq != numseqs) {
-      fatal_util("The blocks in your alignment are inconsistent in their number of sequences");
-    }
-    
-    numblocks++;
-    
-    /* skip to ther next block */
-    
-    do {
-      if (fgets(line, MAX_LINE_LEN, handle) == NULL) { 
-	name_ptr = NULL; 
-	break; 
+      /* if this is the first block, set up the memory for the sequences themselves */
+      if (thisseq == 0) {
+	aln->seqs = (struct Sequence **) malloc_util ( sizeof( struct Sequence *));
+	aln->numseqs = 1;
       }
-      strcpy(tokenstring, line);
-    }
-    while ((name_ptr = strtok(tokenstring, whitespace)) == NULL || 
-	   (strchr(comment, *name_ptr) != NULL));
-    
-  }
-  
-  /* First pass over. At this point, we now know everything we need 
-     to allocate the memory for the alignement */
-
-
-  aln_len = 0;
-  for (i = 0; i < numblocks; i++) {
-    aln_len += blocks[i].col_en - blocks[i].col_st + 1;
-  }
-
-  aln->seqs = (struct Sequence **) malloc_util (numseqs * sizeof(struct Sequence *));
-  aln->length = aln_len;
-  aln->numseqs = numseqs;
-  for (i=0; i < numseqs; i++) {
-    aln->seqs[i] = empty_Sequence();
-    aln->seqs[i]->length = aln_len;
-    aln->seqs[i]->seq = (char *) malloc_util( aln_len * sizeof( char ));
-    aln->seqs[i]->name = aln_names[i];
-  }
-
-  /********************/
-  /** Second pass ... */
-  /********************/
-
-  rewind(handle);
-
-  for (;;) {
-    if (fgets(line, MAX_LINE_LEN, handle) == NULL) {
-      fatal_util("Could not read in alignment; empty sequence file");
-    }
-    strcpy(tokenstring, line);
-
-    if ((name_ptr = strtok(tokenstring, whitespace)) == NULL) continue;
-    else if (strchr(comment, *name_ptr) == NULL) break;
-  }
-  
-  aln_pos = 0;
-  for (i = 0 ; i < numblocks; i++) {
-    thisseq = 0;
-    while (name_ptr != NULL) {
-      /* we have a valid line. Copy the sequence characters into the correct sequence */
-      for (k=blocks[i].col_st, j=aln_pos; k <= blocks[i].col_en; j++, k++) {
-	aln->seqs[thisseq]->seq[j] = line[k];
+      else { 
+	aln->numseqs++;
+	aln->seqs = (struct Sequence **) realloc_util( aln->seqs, aln->numseqs * sizeof( struct Sequence *));
       }
-
-      for (;;) {
-	/* loop until we hit the sequence line */
-	name_ptr = NULL;
-	if (fgets(line, MAX_LINE_LEN, handle) == NULL)  {
-	  /* we have reached the end of the file */
-	  break;
-	}
-	strcpy(tokenstring, line);
-	if ((name_ptr = strtok(tokenstring, whitespace)) == NULL) {
-	  /* A blank line, therfore the end of the block */
-	  break;
-	}
-	if (strchr(comment, *name_ptr) == NULL) {
-	  /* A non-null line. Check it's not a comment */
-	  if (strchr(comment, *name_ptr) == NULL) {
-	    thisseq++;
-	    break;
-	  }
-	}
-      }
-    }
       
-    aln_pos += blocks[i].col_en - blocks[i].col_st + 1;
-
-    /* now parse up to the beginning of the next block */
-
-    for (;;) {
-      if (fgets(line, MAX_LINE_LEN, handle) == NULL) {
-	/* end of file */
-	break;
+      aln->seqs[thisseq] = empty_Sequence();
+      aln->seqs[thisseq]->length = 0;
+      aln->seqs[thisseq]->name = (char *) malloc_util( (strlen( name_ptr ) + 1) * sizeof(char));
+      strcpy( aln->seqs[thisseq]->name, name_ptr );
+      
+      /* get rid of whitespace at end of line */
+      for ( last_idx = strlen(seq_ptr) - 1; strchr(whitespace, seq_ptr[last_idx]) != NULL; last_idx--);	  
+      aln->seqs[thisseq]->seq = (char *) malloc_util( (last_idx + 1) * sizeof (char ) );
+    }
+    else {
+      if (strcmp(aln->seqs[thisseq]->name, name_ptr) != 0) {
+	warning_util("Your seq names are inconsistent across blocks. Using the names in the first block");
       }
-      strcpy(tokenstring, line);
-      if ((name_ptr = strtok(tokenstring, whitespace)) == NULL) {
-	/* a blank line, so loop on around .. */
-	continue;
+      
+      /* The following accounts for the fact that there may be whitepasce at the end of the line */
+      for ( last_idx = strlen(seq_ptr) - 1; strchr(whitespace, seq_ptr[last_idx]) != NULL; last_idx--);
+
+      aln->seqs[thisseq]->seq = (char *) realloc_util(aln->seqs[thisseq]->seq,	      
+						      (aln->seqs[thisseq]->length + last_idx + 1) * sizeof(char)); 
+      
+    }
+    
+    /* and finally, copy the string across */
+    for( j=0; j <= last_idx; j++, aln->seqs[thisseq]->length++) 
+      aln->seqs[thisseq]->seq[aln->seqs[thisseq]->length] = seq_ptr[j];
+    
+    /* read the next line. If we come across one or more blank lines while
+       we do so, then assume that we are starting a new block */
+
+    got_line = saw_blank_line = 0;
+    do {
+      if (fgets(line, MAX_LINE_LEN, handle) != NULL) {
+
+	if (strchr( comment, *line ) != NULL)
+	  continue;
+	else if (strncmp(line, terminator, 2) == 0) {
+	  break;
+	}
+	else {
+	  strcpy(tokenstring, line);
+
+	  if ( (name_ptr = strtok(tokenstring, whitespace)) == NULL) {
+	    saw_blank_line = 1;
+	  }
+	  else if ( (seq_ptr = strtok(NULL, whitespace)) != NULL)
+	    got_line = 1;
+	}
       }
-      if (strchr(comment, *name_ptr) == NULL) {
-	/* not a comment line */
+      else 
 	break;
+
+    } while (! got_line );
+
+
+    if (got_line) {
+      if (saw_blank_line) {
+	numblocks++;
+	thisseq = 0;
+      }
+      else {
+	thisseq++;
       }
     }
   }
 
-
-  /***************************************************
-   * Garbage collection and return
-   ***************************************************/
-
-  blocks = free_util(blocks);
-  aln_names = free_util(aln_names);
+  /* just before we return, check the alignment */
+  for(i=0; i < aln->numseqs; i++) {
+    if (i==0)
+      aln->length = aln->seqs[i]->length;
+    else if (aln->length != aln->seqs[i]->length) {
+      fatal_util( "Your alignment segments were of different sizes!\n");
+    }
+  }
 
   return aln;
 }
+

@@ -47,7 +47,7 @@ void *calloc_util( size_t numobjs, size_t size) {
 
 void *malloc_util(size_t numbytes) {
   void *ret;
-	
+
   if ((ret = malloc( numbytes )) == NULL)
     fatal_util("malloc_util: out of memory when requesting %d bytes", numbytes);
 
@@ -75,7 +75,7 @@ void *realloc_util(void *ptr, size_t bytes) {
     fatal_util("Call to realloc_util with a null pointer");
   else { 
     if ((ret = realloc(ptr, bytes)) == NULL)
-      fatal_util("realloc_util: out of memory");
+      fatal_util("realloc_util: out of memory when requesting %d bytes", bytes);
   }
 
   return ret;

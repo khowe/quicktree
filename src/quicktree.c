@@ -35,7 +35,7 @@ Advanced options :\n\
                      (ignored for distance matrix inputs)\n\
 -boot <n>        : Calcuate bootstrap values with n iterations\n\
                      (ignored for distance matrix outputs)\n\n\
-*Use sreformat, part of the HMMer package to convert your alignment to Stockholm format";
+*Use sreformat, part of the HMMer package to convert your alignment to Stockholm format\n";
 
 static struct Option options[] = {
     { "-in", CHAR_ARG },

@@ -616,13 +616,6 @@ struct Tree *UPGMA_buildtree(struct ClusterGroup *group,
 
     for (nodecount=0; nodecount < numseqs-1; nodecount++) {
 
-      for(i=1; i < numseqs; i++) {
-	if (nodes[i] == NULL) continue;
-	for(j=0; j < i; j++) {
-	  if (nodes[j] == NULL) continue;
-	}
-      }
-
       /* do the intialisation necessary for each iteration here */
       
       minsofar = FLT_MAX;  /* from float.h */

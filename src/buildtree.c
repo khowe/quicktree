@@ -1,4 +1,4 @@
-/*  Last edited: Feb  1 15:39 2002 (klh) */
+/*  Last edited: Mar 18 11:52 2002 (klh) */
 /**********************************************************************
  ** FILE: buildtree.c
  ** NOTES:
@@ -590,103 +590,105 @@ struct Tree *UPGMA_buildtree(struct ClusterGroup *group,
   numseqs = nextfreenode =  mat->size;
 
   theTree = empty_Tree();
- 
-    
-    /******* main loop ************************/
-    
-  for (nodecount=0; nodecount < numseqs-1; nodecount++) {
+   
+  /******* main loop ************************/
 
-    /* do the intialisation necessary for each iteration here */
+  if (numseqs == 1)
+    newnode = nodes[0];
+  else {
+    for (nodecount=0; nodecount < numseqs-1; nodecount++) {
 
-    minsofar = DBL_MAX;  /* from float.h */
-
-    /******* for each pair of matrix entries *********************/
-
-    for( i=0; i < numseqs; i++ ) {
-      if (nodes[i] == NULL) continue;
-      for( j=0; j < i; j++ ) {
-	if (nodes[j] == NULL) continue;
-	
-	if (mat->data[i][j] < minsofar) {
-	  minsofar = mat->data[i][j];
-	  mini = i;
-	  minj = j;
+      /* do the intialisation necessary for each iteration here */
+      
+      minsofar = DBL_MAX;  /* from float.h */
+      
+      /******* for each pair of matrix entries *********************/
+      
+      for( i=0; i < numseqs; i++ ) {
+	if (nodes[i] == NULL) continue;
+	for( j=0; j < i; j++ ) {
+	  if (nodes[j] == NULL) continue;
+	  
+	  if (mat->data[i][j] < minsofar) {
+	    minsofar = mat->data[i][j];
+	    mini = i;
+	    minj = j;
+	  }
 	}
       }
-    }
       
-    /* printf("i = %d, j = %d, ri = %f, rj = %f\n", mini, minj, ri, rj); */
+      /* printf("i = %d, j = %d, ri = %f, rj = %f\n", mini, minj, ri, rj); */
       
-    /* we have the neighbouring i, j; lets calc distances and make the new node */
-
-    newnodeheight = mat->data[mini][minj] * 0.5;
-    nodes[mini]->distance = newnodeheight - heights[mini];
-    nodes[minj]->distance = newnodeheight - heights[minj];
-
-    newnode = new_interior_Tnode( nextfreenode++ );
-    newnode->left = nodes[mini];
-    newnode->right = nodes[minj];
-    nodes[mini]->parent = newnode;
-    nodes[minj]->parent = newnode;
-    if (bootstrap) { 
-      /* we need to create and load the 'bit' field of child ids */
+      /* we have the neighbouring i, j; lets calc distances and make the new node */
       
-      newnode->child_ids = (unsigned int *) 
-	malloc_util( group->numclusters * sizeof( unsigned int ) );
-      for (i=0; i < group->numclusters; i++) {
-	if ( (newnode->left->child_ids != NULL && 
-	      (newnode->left->child_ids[i] || newnode->left->child_ids[i])) ||
-	     (newnode->right->child_ids != NULL && 
-	      (newnode->left->nodenumber == i || 
-	       newnode->right->nodenumber == i ||
-	       newnode->nodenumber == i))) {
-	  newnode->child_ids[i] = 1; 
-	}
+      newnodeheight = mat->data[mini][minj] * 0.5;
+      nodes[mini]->distance = newnodeheight - heights[mini];
+      nodes[minj]->distance = newnodeheight - heights[minj];
+      
+      newnode = new_interior_Tnode( nextfreenode++ );
+      newnode->left = nodes[mini];
+      newnode->right = nodes[minj];
+      nodes[mini]->parent = newnode;
+      nodes[minj]->parent = newnode;
+      if (bootstrap) { 
+	/* we need to create and load the 'bit' field of child ids */
+	
+	newnode->child_ids = (unsigned int *) 
+	  malloc_util( group->numclusters * sizeof( unsigned int ) );
+	for (i=0; i < group->numclusters; i++) {
+	  if ( (newnode->left->child_ids != NULL && 
+		(newnode->left->child_ids[i] || newnode->left->child_ids[i])) ||
+	       (newnode->right->child_ids != NULL && 
+		(newnode->left->nodenumber == i || 
+		 newnode->right->nodenumber == i ||
+		 newnode->nodenumber == i))) {
+	    newnode->child_ids[i] = 1; 
+	  }
 	else {
 	  newnode->child_ids[i] = 0;
 	}
+	}
       }
+      
+      /* now update the distance matrix; This needs hackery to make sure that the
+	 indexing is correct */
+      
+      for( m=0; m < numseqs; m++ ) {
+	if (nodes[m] == NULL) continue;
+	
+	/*                  dmini,m*|Ci| + dminj,m*|Cj|
+			    dmini,m =     ---------------------------   
+			    |Ci| + |Cj|
+	*/
+	
+	if (m > minj) dmj = mat->data[m][minj];
+	else dmj = mat->data[minj][m];
+	
+	if (m > mini) {
+	  row = m;
+	  column = mini;
+	}
+	else {
+	  row = mini;
+	  column = m;
+	}
+	dmi = mat->data[row][column];
+	
+	mat->data[row][column] = 
+	  (( dmi * subtreesizes[mini])+( dmj * subtreesizes[minj])) / 
+	  (subtreesizes[mini] + subtreesizes[minj]);    
+      }
+      
+      heights[mini] = newnodeheight;
+      subtreesizes[mini] = subtreesizes[mini] + subtreesizes[minj] + 1; 
+      
+      nodes[mini] = newnode;
+      nodes[minj] = NULL;
+      
     }
- 
-    /* now update the distance matrix; This needs hackery to make sure that the
-       indexing is correct */
-
-    for( m=0; m < numseqs; m++ ) {
-      if (nodes[m] == NULL) continue;
-      
-      /*                  dmini,m*|Ci| + dminj,m*|Cj|
-	    dmini,m =     ---------------------------   
-			          |Ci| + |Cj|
-      */
-      
-      if (m > minj) dmj = mat->data[m][minj];
-      else dmj = mat->data[minj][m];
-      
-      if (m > mini) {
-	row = m;
-	column = mini;
-      }
-      else {
-	row = mini;
-	column = m;
-      }
-      dmi = mat->data[row][column];
-      
-      mat->data[row][column] = 
-	(( dmi * subtreesizes[mini])+( dmj * subtreesizes[minj])) / 
-	(subtreesizes[mini] + subtreesizes[minj]);    
-    }
-
-    heights[mini] = newnodeheight;
-    subtreesizes[mini] = subtreesizes[mini] + subtreesizes[minj] + 1; 
-    
-    nodes[mini] = newnode;
-    nodes[minj] = NULL;
-      
   }
-
   /******* end of main loop ******************/
-
+  
     
   theTree->child[0] = newnode;
   

@@ -1,4 +1,4 @@
-/*  Last edited: Feb  8 17:42 2002 (klh) */
+/*  Last edited: Mar 18 11:55 2002 (klh) */
 /**********************************************************************
  ** FILE: tree.c
  ** NOTES:
@@ -894,16 +894,51 @@ void write_newhampshire_Tnode( FILE *handle, struct Tnode *node,
 
 void write_newhampshire_Tree( FILE *handle, struct Tree *thetree,
 			      unsigned int show_bootstraps) {
+
+  /* write_newhampshire_Tnode always places parenttheses around the
+     sub-tree if there is more than one sub-node, but this is not
+     appropriate if there there are no other sub-trees to draw at
+     this level. Hence there is a special case for a single
+     sub-tree (as returned by the UPGMA method) */
+
   if (thetree != NULL) {
-    fprintf( handle, "(\n");
     if (thetree->child[0] != NULL) {
       if (thetree->child[1] == NULL) {
 	/* draw rooted tree */
-	write_newhampshire_Tnode( handle, thetree->child[0]->left, show_bootstraps );
-	fprintf( handle, ",\n");
-	write_newhampshire_Tnode( handle, thetree->child[0]->right, show_bootstraps );
+
+	if (thetree->child[0]->left != NULL && thetree->child[0]->right != NULL) {
+	  fprintf( handle, "(\n");
+	  write_newhampshire_Tnode( handle, thetree->child[0]->left, show_bootstraps );
+	  fprintf( handle, ",\n");
+	  write_newhampshire_Tnode( handle, thetree->child[0]->right, show_bootstraps );
+	  fprintf( handle, ");\n");
+	}
+	else {
+	  /* this is a leaf node, and leaf nodes may contain a single sequence
+	     or a cluser of sequences. If this leaf contains a single sequence,
+	     then we have a tree of one sequence, in which case we print an
+	     error, because trees of one sequence do not make sense */
+	  
+	  if (thetree->child[0]->clust->clustersize == 1) 
+	    fatal_util( "Cannot build a tree with a single sequence %s",
+		     thetree->child[0]->clust->members[0]->name);
+	  else {
+	    unsigned int i;
+	    
+	    for (i=0; i < thetree->child[0]->clust->clustersize - 1; i++)
+	      fprintf( handle, "(\n%s:%.5f,\n", thetree->child[0]->clust->members[i]->name, 0.0 ); 
+
+	    fprintf( handle, "%s:%.5f", thetree->child[0]->clust->members[i]->name, 0.0);
+
+	    for (i=0; i < thetree->child[0]->clust->clustersize - 2; i++) 
+	      fprintf( handle, ")\n:%.5f)\n", 0.0 ); 
+
+	    fprintf( handle, ");\n"); 
+	  }
+	}
       }
       else {
+	fprintf( handle, "(\n");
 	write_newhampshire_Tnode( handle, thetree->child[0], show_bootstraps );
 	fprintf( handle, ",\n");
 	write_newhampshire_Tnode( handle, thetree->child[1], show_bootstraps );
@@ -911,9 +946,9 @@ void write_newhampshire_Tree( FILE *handle, struct Tree *thetree,
 	  fprintf( handle, ",\n");
 	  write_newhampshire_Tnode( handle, thetree->child[2], show_bootstraps );
 	}
+	fprintf( handle, ");\n");
       }
     }
-    fprintf( handle, ");\n");
   }
   fflush( handle );
 }

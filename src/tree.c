@@ -420,7 +420,7 @@ unsigned int read_newhampshire_Tnode( FILE *handle,
     fscanf( handle, "%1s", &c);  /* should be : */
     if ( c != ':')
       fatal_util( "Parse error: ':' expected");
-    if (!fscanf( handle, "%lf", &distance ))
+    if (!fscanf( handle, "%f", &distance ))
       fatal_util( "Parse error: floating point number expexted");
 
   }
@@ -433,7 +433,7 @@ unsigned int read_newhampshire_Tnode( FILE *handle,
     for( index=0; (newseq->name[index] = fgetc( handle )) != ':'; index++);
     newseq->name[index] = '\0';
 
-    if (!fscanf( handle, "%lf", &distance ))
+    if (!fscanf( handle, "%f", &distance ))
       fatal_util( "Parse error: floating point number expexted");
     
     *nodeptrptr = new_leaf_Tnode( nodecounter++, single_Sequence_Cluster( newseq ) );

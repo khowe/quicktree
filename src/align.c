@@ -199,10 +199,8 @@ struct Alignment *read_Stockholm_Alignment( FILE *handle ) {
   char tokenstring[MAX_LINE_LEN];
   char *name_ptr = NULL;
   char *seq_ptr = NULL;
-  char *tmp = NULL;
 
-  unsigned int i, j, k;
-  unsigned int numseqs = 0;
+  unsigned int i, j;
   unsigned int numblocks = 0;
   unsigned int thisseq = 0;
   unsigned int last_idx = 0;

@@ -55,7 +55,7 @@ static unsigned int output_is_matrix = 0;
 
 static void quicktree( FILE *input) {
   unsigned int trial;
-  struct Alignment *aln, *cons_aln;
+  struct Alignment *aln, *cons_aln = NULL;
   struct DistanceMatrix *mat;
   struct ClusterGroup *group;
   struct Tree *myTree, *testTree;

@@ -88,7 +88,8 @@ void calc_DistanceMatrix( struct DistanceMatrix *mat,
 
   unsigned int i, j, k, table_index, num_undefined_distances, mem_increment;
   unsigned int *columnlist;
-  double residuecount, distance, max_observed_distance, **undefined_distances;
+  float residuecount, distance, max_observed_distance;
+  float **undefined_distances;
 
   columnlist = (unsigned int *) malloc_util( aln->length * sizeof(unsigned int));
   for (i=0; i < aln->length; i++) {
@@ -139,13 +140,13 @@ void calc_DistanceMatrix( struct DistanceMatrix *mat,
 	distance = -1.0;
 	if (num_undefined_distances % mem_increment == 0) {
 	  if (num_undefined_distances == 0) {
-	    undefined_distances = (double **) 
-	      malloc_util( sizeof( double *) * mem_increment);
+	    undefined_distances = (float **) 
+	      malloc_util( sizeof( float *) * mem_increment);
 	  }
 	  else {
-	    undefined_distances = (double **) 
+	    undefined_distances = (float **) 
 	      realloc_util( undefined_distances, 
-			    (num_undefined_distances + mem_increment) * sizeof(double *));
+			    (num_undefined_distances + mem_increment) * sizeof(float *));
 	  }
 	}
 	undefined_distances[num_undefined_distances++] = &(mat->data[i][j]);
@@ -166,7 +167,7 @@ void calc_DistanceMatrix( struct DistanceMatrix *mat,
 	  }
 	  else {
 	    table_index = (int) ((distance*1000.0) - 750.0);
-	    distance = (double) dayhoff_pams[ table_index ];
+	    distance = (float) dayhoff_pams[ table_index ];
 	    distance /= 100.0;
 	  }
 	}
@@ -243,10 +244,10 @@ struct DistanceMatrix *empty_DistanceMatrix( unsigned int size) {
 
   mat = (struct DistanceMatrix *) malloc_util(sizeof(struct DistanceMatrix));
   mat->size = size;
-  mat->data = (double **) malloc_util( mat->size * sizeof(double *) );
+  mat->data = (float **) malloc_util( mat->size * sizeof(float *) );
 
   for( i=0; i < mat->size; i++)
-    mat->data[i] = (double *) malloc_util( (i+1) * sizeof(double) );
+    mat->data[i] = (float *) malloc_util( (i+1) * sizeof(float) );
  
   return mat;
 }
@@ -288,7 +289,7 @@ void *free_DistanceMatrix( struct DistanceMatrix *mat ) {
  DESCRIPTION: 
    indexes the given distance matrix with the given indices,
    returning the appropraite distance.
- RETURNS: distance (double)
+ RETURNS: distance (float)
  ARGS: 
    A distance matrix *
    row index
@@ -300,7 +301,7 @@ void *free_DistanceMatrix( struct DistanceMatrix *mat ) {
    cost of a function call for each lookup (is this wise...?)
  **********************************************************************/
 
-double index_DistanceMatrix( struct DistanceMatrix *mat, 
+float index_DistanceMatrix( struct DistanceMatrix *mat, 
 			     unsigned int i, 
 			     unsigned int j) {
   if (i > j) 
@@ -368,7 +369,7 @@ struct DistanceMatrix *read_phylip_DistanceMatrix( FILE *handle, struct Alignmen
   struct DistanceMatrix *mat;
   unsigned int size, i, j;
   char identifier[11];
-  double dist;
+  float dist;
 
   /* The size of the matrix will be on the first line on its own */
   if (! fscanf( handle, "%d", &size ))
@@ -393,7 +394,7 @@ struct DistanceMatrix *read_phylip_DistanceMatrix( FILE *handle, struct Alignmen
     (*aln_loc)->seqs[i]->name = (char *) malloc_util( 11 * sizeof(char));
     strcpy( (*aln_loc)->seqs[i]->name, identifier );
     for (j=0; j  < size; j++) {
-      fscanf( handle, "%lf", &dist);
+      fscanf( handle, "%f", &dist);
       if (j <= i) 
 	mat->data[i][j] = dist;
     }

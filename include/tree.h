@@ -33,7 +33,7 @@ struct Tnode {
   struct Tnode *left;
   struct Tnode *right;
   struct Tnode *parent;
-  double distance;
+  float distance;
   unsigned int nodenumber;
   struct Cluster *clust;
   unsigned int bootstrap;

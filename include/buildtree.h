@@ -55,7 +55,7 @@ void export_distances_buildtree( struct Tree *, struct DistanceMatrix *);
 void find_path_buildtree( unsigned int,
 			  struct Tnode *,
 			  struct DistanceMatrix *,
-			  double,
+			  float,
 			  unsigned int *);
 
 

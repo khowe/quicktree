@@ -18,7 +18,7 @@
 /******************* structure definitions ****************************/
 
 struct DistanceMatrix {
-  double **data;
+  float **data;
   int size;
 };
 
@@ -105,7 +105,7 @@ void *free_DistanceMatrix( struct DistanceMatrix *);
  DESCRIPTION: 
    indexes the given distance matrix with the given indices,
    returning the appropraite distance.
- RETURNS: distance (double)
+ RETURNS: distance (float)
  ARGS: 
    A distance matrix *
    row index
@@ -116,7 +116,7 @@ void *free_DistanceMatrix( struct DistanceMatrix *);
    It therefore abstracts the internals of the distance matrix, at the
    cost of a function call for each lookup (is this wise...?)
  **********************************************************************/
-double index_DistanceMatrix( struct DistanceMatrix *, unsigned int, unsigned int );
+float index_DistanceMatrix( struct DistanceMatrix *, unsigned int, unsigned int );
 
 /*********************************************************************
  FUNCTION: print_DistanceMatrix

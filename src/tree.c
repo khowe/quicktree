@@ -249,7 +249,7 @@ struct Tree *get_root_Tnode( struct Tree *source ) {
   struct Tnode *focal, *root, *children[3];
   struct Tree *ret;
   unsigned int rootleft, focalleft, focalright;
-  double maxdist;
+  float maxdist;
 
   /***** Method **************
      0. Clone the given tree
@@ -387,7 +387,7 @@ unsigned int read_newhampshire_Tnode( FILE *handle,
   char c;
   unsigned int index;
   struct Sequence *newseq;
-  double distance;
+  float distance;
   
 
   fscanf( handle, "%1s", &c);
@@ -523,7 +523,7 @@ struct Tree *read_newhampshire_Tree( FILE *handle ) {
 void scale_bootstraps_Tnode( struct Tnode *node, unsigned int iters) {
 
   if (node != NULL) {
-    node->bootstrap = (int) (((double) node->bootstrap / (double) iters) * 100.0);
+    node->bootstrap = (int) (((float) node->bootstrap / (float) iters) * 100.0);
     scale_bootstraps_Tnode( node->left, iters);
     scale_bootstraps_Tnode( node->right, iters);
   }

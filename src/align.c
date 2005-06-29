@@ -195,8 +195,8 @@ void write_MUL_Alignment( FILE *handle, struct Alignment *al ) {
 struct Alignment *read_Stockholm_Alignment( FILE *handle ) {
   struct Alignment *aln;
 
-  char line[MAX_LINE_LEN];
-  char tokenstring[MAX_LINE_LEN];
+  char *line = (char *) malloc_util( MAX_LINE_LEN * sizeof(char) );
+  unsigned int lineAllocSize = MAX_LINE_LEN; 
   char *name_ptr = NULL;
   char *seq_ptr = NULL;
 
@@ -217,20 +217,29 @@ struct Alignment *read_Stockholm_Alignment( FILE *handle ) {
 
   /* skip to the start of the first block */
   got_line = 0;
+  
   do {
-    if (fgets(line, MAX_LINE_LEN, handle) == NULL)
+    if (fgets(line, lineAllocSize, handle) == NULL)
       break;
     else {      
+      if (strchr(line, '\n') == NULL) { /* did not read whole line! */
+        do {
+          lineAllocSize += MAX_LINE_LEN;
+          line = (char *) realloc_util( line, lineAllocSize * sizeof(char) );
+        } while (fgets(line + lineAllocSize - MAX_LINE_LEN - 1, MAX_LINE_LEN+1,
+                       handle) != NULL  &&
+                 strchr(line, '\n') == NULL);
+      }
+      
       if (strchr( comment, *line ) != NULL)
 	continue;
       else if (strncmp(line, terminator, 2) == 0) {
 	break;
       }
       else {
-	strcpy(tokenstring, line);
-	if ( (name_ptr = strtok(tokenstring, whitespace)) != NULL && 
-	     (seq_ptr = strtok( NULL, whitespace )) != NULL)
-	  got_line = 1;	
+        if ( (name_ptr = strtok(line, whitespace)) != NULL &&
+             (seq_ptr = strtok( NULL, whitespace )) != NULL)
+          got_line = 1;        
       }
     }
   } while (! got_line);
@@ -282,17 +291,23 @@ struct Alignment *read_Stockholm_Alignment( FILE *handle ) {
 
     got_line = saw_blank_line = 0;
     do {
-      if (fgets(line, MAX_LINE_LEN, handle) != NULL) {
-
+      if (fgets(line, lineAllocSize, handle) != NULL) {
+        if (strchr(line, '\n') == NULL) { /* did not read whole line! */
+          do {
+            lineAllocSize += MAX_LINE_LEN;
+            line = (char *) realloc_util( line, lineAllocSize * sizeof(char) );
+          } while (fgets(line + lineAllocSize - MAX_LINE_LEN-1, MAX_LINE_LEN+1,
+                         handle) != NULL  &&
+                   strchr(line, '\n') == NULL);
+        }
+        
 	if (strchr( comment, *line ) != NULL)
 	  continue;
 	else if (strncmp(line, terminator, 2) == 0) {
 	  break;
 	}
 	else {
-	  strcpy(tokenstring, line);
-
-	  if ( (name_ptr = strtok(tokenstring, whitespace)) == NULL) {
+	  if ( (name_ptr = strtok(line, whitespace)) == NULL) {
 	    saw_blank_line = 1;
 	  }
 	  else if ( (seq_ptr = strtok(NULL, whitespace)) != NULL)
@@ -315,6 +330,8 @@ struct Alignment *read_Stockholm_Alignment( FILE *handle ) {
       }
     }
   }
+
+  free_util(line);
 
   /* just before we return, check the alignment */
   for(i=0; i < aln->numseqs; i++) {

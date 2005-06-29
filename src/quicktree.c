@@ -184,7 +184,7 @@ int main (int argc, char *argv[]) {
   }
 
   if (argc - optindex != 1) {
-    fatal_util("Fatal error: Incorrect number of arguements.\n%s\n", usage );
+    fatal_util("Fatal error: Incorrect number of arguments.\n%s\n", usage );
   }
 
   fname = argv[optindex];

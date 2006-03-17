@@ -811,6 +811,37 @@ void write_MUL_flattened_Tree( FILE *handle, struct Tree *tr) {
 
 }
 
+/********************************************************************* 
+ FUNCTION: write_newhampshire_Cluster
+ DESCRIPTION: 
+   prints the given Cluster in 'New Hampshire' text format to the given 
+   file handle, in a compact way (thanks to Dmitry Samborsky for this
+   suggestion and code)
+ RETURNS:
+ ARGS: 
+   File handle
+   Cluster
+   Clutser member boundaries to consider
+ NOTES:
+ *********************************************************************/
+void write_newhampshire_Cluster( FILE *handle, struct Cluster *clust, 
+                                 int a, int b ) {
+
+  int l = b - a + 1;
+  int m = a + l / 2;
+
+  if ( l == 1 ) {
+    fprintf( handle, "%s:%.5f", clust->members[a]->name, 0.0 );
+    return;
+  }
+
+  fprintf( handle, "(\n" );
+  write_newhampshire_Cluster( handle, clust, a, m - 1 );
+  fprintf( handle, ",\n" );
+  write_newhampshire_Cluster( handle, clust, m, b );
+  fprintf( handle, ")\n:%.5f", 0.0 );
+
+}
 
 
 /********************************************************************* 
@@ -845,20 +876,10 @@ void write_newhampshire_Tnode( FILE *handle, struct Tnode *node,
 	fprintf( handle, "%s:%.5f", node->clust->members[0]->name, node->distance );
       else {
 	/* if there is more than one sequence belonging to the cluster, then this piece
-	   of code will generate som internal nodes in the output tree with no bootstrap
+	   of code will generate some internal nodes in the output tree with no bootstrap
 	   values. Such is life... */
-        unsigned int i;
-
-	for (i=0; i < node->clust->clustersize - 1; i++) {
-	 fprintf( handle, "(\n%s:%.5f,\n", node->clust->members[i]->name, 0.0 ); 
-	}
-	fprintf( handle, "%s:%.5f)\n", node->clust->members[i]->name, 0.0);
-	for (i=0; i < node->clust->clustersize - 2; i++) {
-	 fprintf( handle, ":%.5f)\n", 0.0 ); 
-	}
-
-	fprintf( handle, ":%.5f", node->distance);
-	/* fprintf( handle, "Cluster_%d:%.5f", node->nodenumber, node->distance ); */
+        struct Cluster *clust = node->clust;
+        write_newhampshire_Cluster( handle, clust, 0, clust->clustersize - 1 );
       }
     }
     else if ( node->left != NULL && node->right != NULL ) {

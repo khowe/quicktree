@@ -360,9 +360,24 @@ void write_MUL_flattened_Tree( FILE *, struct Tree *);
 
 
 /********************************************************************* 
+ FUNCTION: write_newhampshire_Cluster
+ DESCRIPTION: 
+   prints the given Cluster in 'New Hampshire' text format to the given 
+   file handle
+ RETURNS:
+ ARGS: 
+   File handle
+   Cluster *
+   Cluster member limits
+ NOTES:
+ *********************************************************************/
+void write_newhampshire_Tnode( FILE *, struct Tnode *, unsigned int);
+
+
+/********************************************************************* 
  FUNCTION: write_newhampshire_Tnode
  DESCRIPTION: 
-   prints the given Tree in 'New Hampshire' text format to the given 
+   prints the given Tnode in 'New Hampshire' text format to the given 
    file handle
  RETURNS:
  ARGS: 

@@ -9,7 +9,7 @@
 #include "align.h"
 
 
-static char *comment = "#";
+static char comment = '#';
 static char *whitespace = " \t\r\n";
 static char *terminator = "//";
 
@@ -56,6 +56,9 @@ void *free_Alignment( struct Alignment *al ) {
    The function allocates all the memory necessary for the 
    alignment. The caller should call free_Alignment (align.h) to 
    free this memory when the alignment is no longer needed
+
+   This method is deprecated, because MUL format alignments are
+   parsed by the more general read_Stockholm_Alignment
  **********************************************************************/
 
 struct Alignment *read_MUL_Alignment( FILE *stream ) {
@@ -231,15 +234,18 @@ struct Alignment *read_Stockholm_Alignment( FILE *handle ) {
                  strchr(line, '\n') == NULL);
       }
       
-      if (strchr( comment, *line ) != NULL)
+      if (line[0] == comment)
 	continue;
       else if (strncmp(line, terminator, 2) == 0) {
 	break;
       }
-      else {
-        if ( (name_ptr = strtok(line, whitespace)) != NULL &&
-             (seq_ptr = strtok( NULL, whitespace )) != NULL)
-          got_line = 1;        
+      else if ( (name_ptr = strtok(line, whitespace)) != NULL &&
+                (name_ptr == line) &&
+                (seq_ptr = strtok( NULL, whitespace )) != NULL) {
+        got_line = 1;
+        
+      } else {
+        fatal_util( "The alignment file is not valid Stockholm format\n");
       }
     }
   } while (! got_line);
@@ -301,7 +307,7 @@ struct Alignment *read_Stockholm_Alignment( FILE *handle ) {
                    strchr(line, '\n') == NULL);
         }
         
-	if (strchr( comment, *line ) != NULL)
+	if (line[0] == comment)
 	  continue;
 	else if (strncmp(line, terminator, 2) == 0) {
 	  break;
@@ -309,9 +315,14 @@ struct Alignment *read_Stockholm_Alignment( FILE *handle ) {
 	else {
 	  if ( (name_ptr = strtok(line, whitespace)) == NULL) {
 	    saw_blank_line = 1;
-	  }
-	  else if ( (seq_ptr = strtok(NULL, whitespace)) != NULL)
+	  } 
+	  else if (name_ptr == line && 
+                   (seq_ptr = strtok(NULL, whitespace)) != NULL) {
 	    got_line = 1;
+          } 
+          else {
+            fatal_util( "The alignment file is not valid Stockholm format\n");
+          }
 	}
       }
       else 

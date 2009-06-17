@@ -368,7 +368,7 @@ void print_DistanceMatrix( FILE *handle, struct DistanceMatrix *mat ) {
 struct DistanceMatrix *read_phylip_DistanceMatrix( FILE *handle, struct Alignment **aln_loc) {
   struct DistanceMatrix *mat;
   unsigned int size, i, j;
-  char identifier[11];
+  char identifier[MAX_PHYLIP_NAME_LEN + 1];
   double dist;
 
   /* The size of the matrix will be on the first line on its own */
@@ -383,18 +383,31 @@ struct DistanceMatrix *read_phylip_DistanceMatrix( FILE *handle, struct Alignmen
   (*aln_loc)->length = 0;
   mat = empty_DistanceMatrix( size );
 
-
   for (i=0; i < size; i++) {
-    /* The name should be exactly 10 chars, and the scanf should place a \0
-       at the end, making 11 */
-    fscanf( handle, "%s", identifier );
-    /* Right; the rest of the line will consist of exactly 'size' floating
-       point numbers */
+    /* In PHYLIP format, the name is exactly 10 characters. However, we allow up to 
+       MAX_PHYLIP_NAME_LEN */
+    unsigned int cidx;
+    char c;
+
+    fscanf( handle, " %c", identifier);
+    cidx = 1;
+    while(!isspace(c = fgetc(handle))) {
+      if (cidx < MAX_PHYLIP_NAME_LEN)
+        identifier[cidx++] = c;
+    }
+    identifier[cidx] = '\0';
+
+    fprintf(stderr, "Read :%s:\n", identifier);
+
+    /* In PHYLIP format, the distance matrix is symmetrical. However, also
+       copw with a bottom-left matrix */
     (*aln_loc)->seqs[i] = empty_Sequence();
-    (*aln_loc)->seqs[i]->name = (char *) malloc_util( 11 * sizeof(char));
+    (*aln_loc)->seqs[i]->name = (char *) malloc_util( strlen(identifier) * sizeof(char));
     strcpy( (*aln_loc)->seqs[i]->name, identifier );
     for (j=0; j  < size; j++) {
-      fscanf( handle, "%lf", &dist);
+      if (! fscanf( handle, "%lf", &dist))
+        break;
+
       if (j <= i) 
 	mat->data[i][j] = (Distance) dist;
     }

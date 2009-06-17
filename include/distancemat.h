@@ -14,6 +14,7 @@
 #include "align.h"
 #include "time.h"
 
+#define MAX_PHYLIP_NAME_LEN 100
 
 /******************* structure definitions ****************************/
 

@@ -646,13 +646,11 @@ struct Tree *UPGMA_buildtree(struct ClusterGroup *group,
 	newnode->child_ids = (unsigned int *) 
 	  malloc_util( group->numclusters * sizeof( unsigned int ) );
 	for (i=0; i < group->numclusters; i++) {
-	  if ( (newnode->left->child_ids != NULL && 
-		(newnode->left->child_ids[i] || newnode->left->child_ids[i])) ||	       
-	       (newnode->right->child_ids != NULL &&
-		(newnode->right->child_ids[i] || newnode->right->child_ids[i])) ||
-		(newnode->left->nodenumber == i || 
-		 newnode->right->nodenumber == i ||
-		 newnode->nodenumber == i)) {
+	  if ( (newnode->left->child_ids != NULL && newnode->left->child_ids[i]) || 	       
+	       (newnode->right->child_ids != NULL && newnode->right->child_ids[i]) ||
+		newnode->left->nodenumber == i || 
+		newnode->right->nodenumber == i ||
+		newnode->nodenumber == i) {
 	    newnode->child_ids[i] = 1; 
 	  }
 	  else {
@@ -719,8 +717,8 @@ struct Tree *UPGMA_buildtree(struct ClusterGroup *group,
       }
 
       heights[mini] = newnodeheight;
-      subtreesizes[mini] = subtreesizes[mini] + subtreesizes[minj] + 1; 
-      
+      subtreesizes[mini] = subtreesizes[mini] + subtreesizes[minj];
+ 
       nodes[mini] = newnode;
       nodes[minj] = NULL;
       

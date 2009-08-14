@@ -397,20 +397,19 @@ struct DistanceMatrix *read_phylip_DistanceMatrix( FILE *handle, struct Alignmen
     }
     identifier[cidx] = '\0';
 
-    fprintf(stderr, "Read :%s:\n", identifier);
-
     /* In PHYLIP format, the distance matrix is symmetrical. However, also
-       copw with a bottom-left matrix */
+       cope with a bottom-left matrix */
     (*aln_loc)->seqs[i] = empty_Sequence();
     (*aln_loc)->seqs[i]->name = (char *) malloc_util( strlen(identifier) * sizeof(char));
     strcpy( (*aln_loc)->seqs[i]->name, identifier );
-    for (j=0; j  < size; j++) {
+    for (j=0; j  <= i; j++) {
       if (! fscanf( handle, "%lf", &dist))
-        break;
-
-      if (j <= i) 
-	mat->data[i][j] = (Distance) dist;
+        fatal_util("Parse error");
+      mat->data[i][j] = (Distance) dist;
     }
+    do {
+      c = fgetc(handle)
+    } while(c != '\n'); 
   } 
 
   return mat;

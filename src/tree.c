@@ -400,8 +400,8 @@ unsigned int read_newhampshire_Tnode( FILE *handle,
   struct Sequence *newseq;
   double distance;
   
-
-  fscanf( handle, "%1s", &c);
+  if (! fscanf( handle, "%1s", &c))
+    fatal_util( "Parse error: failed to read next character");
 
   if ( c == '(' ) {
     /* we do not know the node number until we have parsed the children,
@@ -414,10 +414,9 @@ unsigned int read_newhampshire_Tnode( FILE *handle,
 					    *nodeptrptr,
 					    nodecounter );
 
-    fscanf( handle, "%1s", &c); /* should be , */
-    if ( c != ',')
+    if (! fscanf( handle, "%1s", &c) || c != ',')
       fatal_util( "Parse error: ',' expected");
-
+    
     nodecounter += read_newhampshire_Tnode( handle, 
 					    &((*nodeptrptr)->right),
 					    *nodeptrptr,
@@ -425,11 +424,9 @@ unsigned int read_newhampshire_Tnode( FILE *handle,
   
     /* (*nodeptrptr)->nodenumber = nodecounter++; */
 
-    fscanf( handle, "%1s", &c);  /* should be ) */
-    if ( c != ')')
+    if (! fscanf( handle, "%1s", &c) || c != ')')
       fatal_util( "Parse error: ')' expected");
-    fscanf( handle, "%1s", &c);  /* should be : */
-    if ( c != ':')
+    if (! fscanf( handle, "%1s", &c) || c != ':')
       fatal_util( "Parse error: ':' expected");
     if (!fscanf( handle, "%lf", &distance ))
       fatal_util( "Parse error: floating point number expexted");
@@ -476,15 +473,15 @@ struct Tree *read_newhampshire_Tree( FILE *handle ) {
 
   struct Tree *thetree = empty_Tree();
 
-  fscanf( handle, "(");
+  if (! fscanf( handle, "("))
+    fatal_util( "Parse error: '(' expected");
 
   numnodes += read_newhampshire_Tnode( handle, 
 				       &thetree->child[0],
 				       NULL,
 				       numnodes);
   
-  fscanf( handle, "%1s", &c ); /* should be , */
-  if ( c != ',')
+  if (! fscanf( handle, "%1s", &c ) || c != ',')
     fatal_util( "Parse error: ',' expected");
 
   numnodes += read_newhampshire_Tnode( handle, 
@@ -492,8 +489,7 @@ struct Tree *read_newhampshire_Tree( FILE *handle ) {
 				       NULL,
 				       numnodes);
 
-  fscanf( handle, "%1s", &c ); /* should be , */
-  if ( c != ',')
+  if (! fscanf( handle, "%1s", &c ) || c != ',')
     fatal_util( "Parse error: ',' expected");
 
   numnodes += read_newhampshire_Tnode( handle,
@@ -501,13 +497,11 @@ struct Tree *read_newhampshire_Tree( FILE *handle ) {
 				       NULL,
 				       numnodes);
 
-  fscanf( handle, "%1s", &c);
-  if ( c != ')')
+  if (! fscanf( handle, "%1s", &c) || c != ')')
     fatal_util( "Parse error: ')' expected");
-  fscanf( handle, "%1s", &c);
-  if ( c != ';')
+  if (! fscanf( handle, "%1s", &c) || c != ';')
     fatal_util( "Parse error: ';' expected");
-
+  
   numnodes += assign_nodenumbers_Tnode( thetree->child[0], numnodes );
   numnodes += assign_nodenumbers_Tnode( thetree->child[1], numnodes );
   numnodes += assign_nodenumbers_Tnode( thetree->child[2], numnodes );

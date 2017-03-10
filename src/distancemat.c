@@ -400,7 +400,8 @@ struct DistanceMatrix *read_phylip_DistanceMatrix( FILE *handle, struct Alignmen
     unsigned int cidx;
     char c;
 
-    fscanf( handle, " %c", identifier);
+    if (! fscanf( handle, " %c", identifier))
+      fatal_util( "Parse error: failed to read the matrix name");
     cidx = 1;
     while(!isspace(c = fgetc(handle))) {
       if (cidx < MAX_PHYLIP_NAME_LEN)
@@ -419,7 +420,7 @@ struct DistanceMatrix *read_phylip_DistanceMatrix( FILE *handle, struct Alignmen
       mat->data[i][j] = (Distance) dist;
     }
     do {
-      c = fgetc(handle)
+      c = fgetc(handle);
     } while(c != '\n'); 
   } 
 

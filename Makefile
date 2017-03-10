@@ -1,8 +1,8 @@
 
-BIN = ./bin
+BIN = .
 SRC = ./src
 INC = ./include
-OBJ = ./obj
+OBJ = .
 
 COMMON = $(OBJ)/align.o \
 	$(OBJ)/cluster.o \
@@ -14,18 +14,14 @@ COMMON = $(OBJ)/align.o \
 QUICKTREEOBJ = $(COMMON) $(OBJ)/quicktree.o $(OBJ)/buildtree.o $(OBJ)/tree.o
 
 
-CC	= cc
-CFLAGS  = -c -g -I$(INC) -fullwarn
-#CC	= gcc
-#CFLAGS  = -c -I$(INC) -O2 -Wall
+CC	= gcc
+CFLAGS  = -c -I$(INC) -O2 -Wunused-result
 
 LFLAGS = -g 
 
-all: $(BIN)/quicktree
+all: quicktree
 
-quicktree : $(BIN)/quicktree
-
-$(BIN)/quicktree : $(QUICKTREEOBJ)
+quicktree : $(QUICKTREEOBJ)
 	$(CC) $(LFLAGS) -o $@ $(QUICKTREEOBJ) -lm
 
 $(OBJ)/quicktree.o : $(SRC)/quicktree.c 
@@ -56,4 +52,4 @@ $(OBJ)/options.o : $(SRC)/options.c $(INC)/options.h
 	$(CC) $(CFLAGS) -o $(OBJ)/options.o $(SRC)/options.c
 
 clean:
-	rm $(OBJ)/*.o
+	rm $(OBJ)/*.o quicktree

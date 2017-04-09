@@ -27,7 +27,7 @@
 #include "buildtree.h"
 #include "distancemat.h"
 #include "tree.h"
-
+#include "version.h"
 
 /********************* command-line options * ************************/
 
@@ -44,7 +44,8 @@ Advanced options :\n\
 -kimura          : Use the kimura translation for pairwise distances\n\
                      (ignored for distance matrix inputs)\n\
 -boot <n>        : Calcuate bootstrap values with n iterations\n\
-                     (ignored for distance matrix outputs)\n\n\
+                     (ignored for distance matrix outputs)\n\
+-v               : print version and exit\n\n\
 *Use sreformat, part of the HMMer package to convert your alignment to Stockholm format\n";
 
 static struct Option options[] = {
@@ -53,7 +54,8 @@ static struct Option options[] = {
     { "-upgma", NO_ARGS },
     { "-kimura", NO_ARGS },
     { "-boot",   INT_ARG },
-    { "-h",      NO_ARGS }
+    { "-h",      NO_ARGS },
+    { "-v",      NO_ARGS },
 };
 
 static unsigned int use_kimura = 0; 
@@ -189,6 +191,10 @@ int main (int argc, char *argv[]) {
     } 
     else if (strcmp(optname, "-h") == 0) {
       fprintf( stderr, "%s", usage );
+      exit(0);
+    }
+    else if (strcmp(optname, "-v") == 0) {
+      printf( "quicktree %d.%d\n", VERSION_MAJOR, VERSION_MINOR );
       exit(0);
     }
   }

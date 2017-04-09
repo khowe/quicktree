@@ -24,7 +24,7 @@ all: quicktree
 quicktree : $(QUICKTREEOBJ)
 	$(CC) $(LFLAGS) -o $@ $(QUICKTREEOBJ) -lm
 
-$(OBJ)/quicktree.o : $(SRC)/quicktree.c 
+$(OBJ)/quicktree.o : $(SRC)/quicktree.c $(INC)/version.h
 	$(CC) $(CFLAGS) -o $(OBJ)/quicktree.o $(SRC)/quicktree.c
 
 $(OBJ)/align.o : $(SRC)/align.c $(INC)/align.h

@@ -247,6 +247,8 @@ struct Alignment *read_Stockholm_Alignment( FILE *handle ) {
       
       if (line[0] == comment)
 	continue;
+      if (line[0] == '\n')
+	continue;
       else if (strncmp(line, terminator, 2) == 0) {
 	break;
       }

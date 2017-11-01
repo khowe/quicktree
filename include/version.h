@@ -22,6 +22,6 @@
 #define _VERSION
 
 #define VERSION_MAJOR	2
-#define VERSION_MINOR	0
+#define VERSION_MINOR	2
 
 #endif

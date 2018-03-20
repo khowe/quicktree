@@ -250,15 +250,18 @@ struct DistanceMatrix *clone_DistanceMatrix( struct DistanceMatrix *source) {
    go trying to access that top-right section (I'm warning you...)
  *********************************************************************/
 struct DistanceMatrix *empty_DistanceMatrix( unsigned int size) {
-  unsigned int i;
+  unsigned int i,j;
   struct DistanceMatrix *mat;
 
   mat = (struct DistanceMatrix *) malloc_util(sizeof(struct DistanceMatrix));
   mat->size = size;
   mat->data = (Distance **) malloc_util( mat->size * sizeof(Distance *) );
 
-  for( i=0; i < mat->size; i++)
+  for( i=0; i < mat->size; i++) {
     mat->data[i] = (Distance *) malloc_util( (i+1) * sizeof(Distance) );
+    for( j=0; j < i; j++) 
+      mat->data[i][j] = 0.0;
+  }
  
   return mat;
 }
@@ -399,30 +402,37 @@ struct DistanceMatrix *read_phylip_DistanceMatrix( FILE *handle, struct Alignmen
        MAX_PHYLIP_NAME_LEN */
     unsigned int cidx;
     char c;
+    unsigned int newline = 0;
 
     if (! fscanf( handle, " %c", identifier))
       fatal_util( "Parse error: failed to read the matrix name");
     cidx = 1;
-    while(!isspace(c = fgetc(handle))) {
+    while(c = fgetc(handle)) {
+      if (c == '\n')
+        newline = 1;
+      if (isspace(c)) 
+        break;
+
       if (cidx < MAX_PHYLIP_NAME_LEN)
         identifier[cidx++] = c;
     }
     identifier[cidx] = '\0';
-
     /* In PHYLIP format, the distance matrix is symmetrical. However, also
        cope with a bottom-left matrix */
     (*aln_loc)->seqs[i] = empty_Sequence();
     (*aln_loc)->seqs[i]->name = (char *) malloc_util( strlen(identifier) * sizeof(char));
     strcpy( (*aln_loc)->seqs[i]->name, identifier );
-    for (j=0; j  <= i; j++) {
+    for (j=0; j < i; j++) {
       if (! fscanf( handle, "%lf", &dist))
-        fatal_util("Parse error");
+        fatal_util("Parse error whilst looking for distance");
       mat->data[i][j] = (Distance) dist;
     }
-    do {
-      c = fgetc(handle);
-    } while(c != '\n'); 
-  } 
+    if (!newline) {
+      do {
+        c = fgetc(handle);
+      } while(c != '\n'); 
+    } 
+  }
 
   return mat;
 }

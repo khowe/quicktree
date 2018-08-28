@@ -420,7 +420,7 @@ struct DistanceMatrix *read_phylip_DistanceMatrix( FILE *handle, struct Alignmen
     /* In PHYLIP format, the distance matrix is symmetrical. However, also
        cope with a bottom-left matrix */
     (*aln_loc)->seqs[i] = empty_Sequence();
-    (*aln_loc)->seqs[i]->name = (char *) malloc_util( strlen(identifier) * sizeof(char));
+    (*aln_loc)->seqs[i]->name = (char *) malloc_util( (strlen(identifier) + 1) * sizeof(char));
     strcpy( (*aln_loc)->seqs[i]->name, identifier );
     for (j=0; j < i; j++) {
       if (! fscanf( handle, "%lf", &dist))

@@ -349,7 +349,7 @@ void print_DistanceMatrix( FILE *handle, struct DistanceMatrix *mat ) {
   for(row=0; row < mat->size; row++) {
     fprintf( handle, "%5d", row);
     for(column=0; column <= row; column++)
-	fprintf( handle, "%10.5f", mat->data[row][column]);
+	fprintf( handle, "%10.10f", mat->data[row][column]);
     fprintf( handle, "\n");
   }
   fflush( handle );
@@ -474,9 +474,9 @@ void write_phylip_DistanceMatrix( FILE *handle,
     fprintf( handle, "%10.10s", align->seqs[row]->name);
     for(column=0; column < align->numseqs; column++) {
       if (row > column )
-	fprintf( handle, "%10.5f", mat->data[row][column]);
+	fprintf( handle, "%10.10f", mat->data[row][column]);
       else 
-	fprintf( handle, "%10.5f", mat->data[column][row]);
+	fprintf( handle, "%10.10f", mat->data[column][row]);
     }
     fprintf( handle, "\n");
   }

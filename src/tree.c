@@ -717,7 +717,7 @@ void write_debug_Tnode( FILE *handle, struct Tnode *node, unsigned int offset) {
 	  for (j=0; j < offset; j++) fprintf( handle, " ");
 	  /* all leaves in the cluster are printed at the same offset */
 	  fprintf( handle, 
-		   "%d:%s:%.5f\n", 
+		   "%d:%s:%.10f\n", 
 		   node->nodenumber, 
 		   node->clust->members[i]->name,
 		   node->distance); 
@@ -726,7 +726,7 @@ void write_debug_Tnode( FILE *handle, struct Tnode *node, unsigned int offset) {
     }
     else if ( node->left != NULL && node->right != NULL ) {
       for (j=0; j < offset; j++) fprintf( handle, " ");
-      fprintf(handle, "Node %d:%.5f\n", node->nodenumber, node->distance);
+      fprintf(handle, "Node %d:%.10f\n", node->nodenumber, node->distance);
       write_debug_Tnode( handle, node->left, offset+2);
       write_debug_Tnode( handle, node->right, offset+2);
     }
@@ -836,7 +836,7 @@ void write_newhampshire_Cluster( FILE *handle, struct Cluster *clust,
   int m = a + l / 2;
 
   if ( l == 1 ) {
-    fprintf( handle, "%s:%.5f", clust->members[a]->name, 0.0 );
+    fprintf( handle, "%s:%.10f", clust->members[a]->name, 0.0 );
     return;
   }
 
@@ -844,7 +844,7 @@ void write_newhampshire_Cluster( FILE *handle, struct Cluster *clust,
   write_newhampshire_Cluster( handle, clust, a, m - 1 );
   fprintf( handle, ",\n" );
   write_newhampshire_Cluster( handle, clust, m, b );
-  fprintf( handle, ")\n:%.5f", 0.0 );
+  fprintf( handle, ")\n:%.10f", 0.0 );
 
 }
 
@@ -878,7 +878,7 @@ void write_newhampshire_Tnode( FILE *handle, struct Tnode *node,
       if (node->clust->clustersize == 0 || node->clust->members == NULL)
 	fatal_util( "Fatal Error: encountered a leaf node with no cluster info"); 
       else if (node->clust->clustersize == 1) 
-	fprintf( handle, "%s:%.5f", node->clust->members[0]->name, node->distance );
+	fprintf( handle, "%s:%.10f", node->clust->members[0]->name, node->distance );
       else {
 	/* if there is more than one sequence belonging to the cluster, then this piece
 	   of code will generate some internal nodes in the output tree with no bootstrap
@@ -893,10 +893,10 @@ void write_newhampshire_Tnode( FILE *handle, struct Tnode *node,
       fprintf( handle, ",\n" );
       write_newhampshire_Tnode( handle, node->right, show_bootstraps );
       if (show_bootstraps) {
-	fprintf( handle, ")\n%d:%.5f", node->bootstrap, node->distance );
+	fprintf( handle, ")\n%d:%.10f", node->bootstrap, node->distance );
       }
       else {
-	fprintf( handle, ")\n:%.5f", node->distance);
+	fprintf( handle, ")\n:%.10f", node->distance);
       }
     }
     /* else do nothing */
@@ -952,12 +952,12 @@ void write_newhampshire_Tree( FILE *handle, struct Tree *thetree,
 	    unsigned int i;
 	    
 	    for (i=0; i < thetree->child[0]->clust->clustersize - 1; i++)
-	      fprintf( handle, "(\n%s:%.5f,\n", thetree->child[0]->clust->members[i]->name, 0.0 ); 
+	      fprintf( handle, "(\n%s:%.10f,\n", thetree->child[0]->clust->members[i]->name, 0.0 ); 
 
-	    fprintf( handle, "%s:%.5f", thetree->child[0]->clust->members[i]->name, 0.0);
+	    fprintf( handle, "%s:%.10f", thetree->child[0]->clust->members[i]->name, 0.0);
 
 	    for (i=0; i < thetree->child[0]->clust->clustersize - 2; i++) 
-	      fprintf( handle, ")\n:%.5f)\n", 0.0 ); 
+	      fprintf( handle, ")\n:%.10f)\n", 0.0 ); 
 
 	    fprintf( handle, ");\n"); 
 	  }

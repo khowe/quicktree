@@ -14,15 +14,17 @@ COMMON = $(OBJ)/align.o \
 QUICKTREEOBJ = $(COMMON) $(OBJ)/quicktree.o $(OBJ)/buildtree.o $(OBJ)/tree.o
 
 
-CC	= gcc
-CFLAGS  = -c -I$(INC) -O2 -Wunused-result
+CC    ?= gcc
+CFLAGS ?= -O2
+CFLAGS += -Wunused-result
+CFLAGS += -c -I$(INC)
 
-LFLAGS = -g 
+LDFLAGS += -g 
 
 all: quicktree
 
 quicktree : $(QUICKTREEOBJ)
-	$(CC) $(LFLAGS) -o $@ $(QUICKTREEOBJ) -lm
+	$(CC) $(LDFLAGS) -o $@ $(QUICKTREEOBJ) -lm
 
 $(OBJ)/quicktree.o : $(SRC)/quicktree.c $(INC)/version.h
 	$(CC) $(CFLAGS) -o $(OBJ)/quicktree.o $(SRC)/quicktree.c

@@ -52,4 +52,4 @@ $(OBJ)/options.o : $(SRC)/options.c $(INC)/options.h
 	$(CC) $(CFLAGS) -o $(OBJ)/options.o $(SRC)/options.c
 
 clean:
-	rm $(OBJ)/*.o quicktree
+	rm -f $(OBJ)/*.o quicktree

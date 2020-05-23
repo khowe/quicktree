@@ -9,7 +9,7 @@ from huge alignments in time less than the age of the universe.
 Installing QuickTree
 ====================
 
-QuickTree is written in ANSI C and should complile and run on a number
+QuickTree is written in ANSI C and should compile and run on a number
 of different platforms. "make quicktree" from this directory should
 compile the program and place the executable in the current directory.
 
